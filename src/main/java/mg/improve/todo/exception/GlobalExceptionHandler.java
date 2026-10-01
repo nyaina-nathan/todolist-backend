@@ -1,9 +1,10 @@
-package mg.improve.todo.endpoint.rest;
+package mg.improve.todo.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
-import mg.improve.todo.service.EmailAlreadyUsedException;
-import mg.improve.todo.validators.ValidationException;
+
+import mg.improve.todo.domain.dto.ErrorResponse;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;

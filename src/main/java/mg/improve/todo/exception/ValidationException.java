@@ -1,4 +1,4 @@
-package mg.improve.todo.validators;
+package mg.improve.todo.exception;
 
 import java.util.List;
 

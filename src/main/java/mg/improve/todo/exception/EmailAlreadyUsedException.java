@@ -1,4 +1,4 @@
-package mg.improve.todo.service;
+package mg.improve.todo.exception;
 
 public class EmailAlreadyUsedException extends RuntimeException {
 
