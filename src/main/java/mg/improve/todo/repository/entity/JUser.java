@@ -8,7 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import java.time.OffsetDateTime;
+
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,18 +36,18 @@ public class JUser {
 	private String passwordHash;
 
 	@Column(name = "created_at")
-	private OffsetDateTime createdAt;
+	private Instant createdAt;
 
 	@Column(name = "updated_at")
-	private OffsetDateTime updatedAt;
+	private Instant updatedAt;
 
 	@PrePersist
 	void onCreate() {
-		this.createdAt = OffsetDateTime.now();
+		this.createdAt = Instant.now();
 	}
 
 	@PreUpdate
 	void onUpdate() {
-		this.updatedAt = OffsetDateTime.now();
+		this.updatedAt = Instant.now();
 	}
 }

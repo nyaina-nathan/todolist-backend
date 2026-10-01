@@ -1,6 +1,6 @@
 package mg.improve.todo.domain.entity;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +21,7 @@ public class Todo {
 
 	private Boolean done;
 
-	private OffsetDateTime createdAt;
+	private Instant createdAt;
 
-	private OffsetDateTime dueDate;
+	private Instant dueDate;
 }

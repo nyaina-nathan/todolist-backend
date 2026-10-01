@@ -1,6 +1,6 @@
 package mg.improve.todo.domain.entity;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +19,7 @@ public class Event {
 
 	private String description;
 
-	private OffsetDateTime startTime;
+	private Instant startTime;
 
-	private OffsetDateTime endTime;
+	private Instant endTime;
 }

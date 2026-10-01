@@ -10,7 +10,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import java.time.OffsetDateTime;
+
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,13 +42,13 @@ public class JTodo {
 	private Boolean done = false;
 
 	@Column(name = "created_at")
-	private OffsetDateTime createdAt;
+	private Instant createdAt;
 
 	@Column(name = "due_date", nullable = false)
-	private OffsetDateTime dueDate;
+	private Instant dueDate;
 
 	@PrePersist
 	void onCreate() {
-		this.createdAt = OffsetDateTime.now();
+		this.createdAt = Instant.now();
 	}
 }

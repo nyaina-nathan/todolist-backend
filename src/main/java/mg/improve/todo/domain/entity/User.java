@@ -1,6 +1,6 @@
 package mg.improve.todo.domain.entity;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +19,7 @@ public class User {
 
 	private String passwordHash;
 
-	private OffsetDateTime createdAt;
+	private Instant createdAt;
 
-	private OffsetDateTime updatedAt;
+	private Instant updatedAt;
 }

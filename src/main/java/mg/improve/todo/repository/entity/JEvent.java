@@ -9,7 +9,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.time.OffsetDateTime;
+
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,8 +38,8 @@ public class JEvent {
 	private String description;
 
 	@Column(name = "start_time", nullable = false)
-	private OffsetDateTime startTime;
+	private Instant startTime;
 
 	@Column(name = "end_time", nullable = false)
-	private OffsetDateTime endTime;
+	private Instant endTime;
 }
