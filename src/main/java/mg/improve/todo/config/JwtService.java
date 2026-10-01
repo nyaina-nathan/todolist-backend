@@ -47,6 +47,14 @@ public class JwtService {
 		return parse(token).get(claimName);
 	}
 
+	public long getAccessExpiration() {
+		return accessExpiration;
+	}
+
+	public long getRefreshExpiration() {
+		return refreshExpiration;
+	}
+
 	public String createToken(UUID userId, boolean isAccessToken,  Map<String, Object> claims) {
 		Date now = new Date();
 		long milliToExpiration = isAccessToken ? accessExpiration : refreshExpiration;

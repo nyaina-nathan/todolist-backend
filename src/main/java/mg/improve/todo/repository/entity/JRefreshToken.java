@@ -32,7 +32,7 @@ public class JRefreshToken {
 	@JoinColumn(name = "id_user", nullable = false)
 	private JUser user;
 
-	@Column(nullable = false)
+	@Column(nullable = false, unique = true)
 	private String value;
 
 	@Column(name = "issued_at")
