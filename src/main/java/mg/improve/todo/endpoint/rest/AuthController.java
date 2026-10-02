@@ -5,8 +5,11 @@ import java.util.UUID;
 
 import jakarta.servlet.http.HttpServletResponse;
 
+import mg.improve.todo.config.AuthCookieFactory;
+import mg.improve.todo.domain.dto.AuthResponse;
 import mg.improve.todo.domain.dto.AuthResult;
 import mg.improve.todo.domain.dto.LoginRequest;
+import mg.improve.todo.domain.dto.RefreshResult;
 import mg.improve.todo.domain.dto.RegisterRequest;
 import mg.improve.todo.domain.dto.UserResponse;
 import mg.improve.todo.service.AuthService;
@@ -16,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,6 +49,15 @@ public class AuthController {
 			@RequestBody LoginRequest request, HttpServletResponse response) {
 		AuthResult result = authService.login(request);
 		return respond(HttpStatus.OK, result, response);
+	}
+
+	@PostMapping("/refresh")
+	public ResponseEntity<AuthResponse> refresh(
+			@CookieValue(name = AuthCookieFactory.REFRESH_TOKEN_COOKIE, required = false) String refreshToken,
+			HttpServletResponse response) {
+		RefreshResult result = authService.refresh(refreshToken);
+		addCookies(result.cookies(), response);
+		return ResponseEntity.ok(result.body());
 	}
 
 	@GetMapping("/me")
