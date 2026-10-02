@@ -16,8 +16,13 @@ public class SecurityConfig {
 
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-	public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+	private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+
+	public SecurityConfig(
+			JwtAuthenticationFilter jwtAuthenticationFilter,
+			RestAuthenticationEntryPoint restAuthenticationEntryPoint) {
 		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+		this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
 	}
 
 	@Bean
@@ -30,6 +35,8 @@ public class SecurityConfig {
 		http
 				.csrf(csrf -> csrf.disable())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.exceptionHandling(exception -> exception
+						.authenticationEntryPoint(restAuthenticationEntryPoint))
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/auth/register", "/auth/login", "/auth/refresh").permitAll()
 						.anyRequest().authenticated())
