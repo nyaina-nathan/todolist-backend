@@ -15,6 +15,7 @@ import mg.improve.todo.domain.mappers.RefreshTokenMapper;
 import mg.improve.todo.domain.mappers.UserMapper;
 import mg.improve.todo.exception.EmailAlreadyUsedException;
 import mg.improve.todo.exception.InvalidCredentialsException;
+import mg.improve.todo.exception.UserNotFoundException;
 import mg.improve.todo.repository.RefreshTokenRepository;
 import mg.improve.todo.repository.UserRepository;
 import mg.improve.todo.repository.entity.JUser;
@@ -104,6 +105,23 @@ public class AuthService {
 		}
 
 		return issueTokens(userMapper.toDomain(jpa));
+	}
+
+	@Transactional(readOnly = true)
+	public User getCurrentUser(UUID userId) {
+		JUser jpa = userRepository.findById(userId)
+				.orElseThrow(UserNotFoundException::new);
+		return userMapper.toDomain(jpa);
+	}
+
+	@Transactional
+	public List<ResponseCookie> deleteCurrentUser(UUID userId) {
+		JUser jpa = userRepository.findById(userId)
+				.orElseThrow(UserNotFoundException::new);
+		userRepository.delete(jpa);
+		return List.of(
+				buildCookie(ACCESS_TOKEN_COOKIE, "", Duration.ZERO),
+				buildCookie(REFRESH_TOKEN_COOKIE, "", Duration.ZERO));
 	}
 
 	private AuthResult issueTokens(User user) {
