@@ -13,6 +13,10 @@ import jakarta.persistence.Table;
 
 import java.time.Instant;
 import java.util.UUID;
+
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -30,6 +34,7 @@ public class JTodo {
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_user", nullable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private JUser user;
 
 	@Column(nullable = false, length = 255)

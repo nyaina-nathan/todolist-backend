@@ -17,7 +17,7 @@ public interface TodoRepository extends JpaRepository<JTodo, UUID> {
 			select t from JTodo t
 			where t.user.id = :userId
 			and (:isDone is null or t.done = :isDone)
-			and (:title is null or lower(t.title) like lower(concat('%', :title, '%')))
+			and (:title is null or lower(t.title) like lower(concat('%', cast(:title as String), '%')))
 			""")
 	Page<JTodo> search(
 			@Param("userId") UUID userId,

@@ -12,6 +12,10 @@ import jakarta.persistence.Table;
 
 import java.time.Instant;
 import java.util.UUID;
+
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,6 +33,7 @@ public class JEvent {
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_todo", nullable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private JTodo todo;
 
 	@Column(nullable = false, length = 255)
