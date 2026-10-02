@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -62,6 +63,22 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleUserNotFound(
 			UserNotFoundException ex, HttpServletRequest request) {
 		return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request, List.of());
+	}
+
+	@ExceptionHandler(TodoNotFoundException.class)
+	public ResponseEntity<ErrorResponse> handleTodoNotFound(
+			TodoNotFoundException ex, HttpServletRequest request) {
+		return build(HttpStatus.NOT_FOUND, ex.getMessage(), request, List.of());
+	}
+
+	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
+	public ResponseEntity<ErrorResponse> handleTypeMismatch(
+			MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+		return build(
+				HttpStatus.BAD_REQUEST,
+				"Invalid request payload",
+				request,
+				List.of("parameter '" + ex.getName() + "' has an invalid value"));
 	}
 
 	private ResponseEntity<ErrorResponse> build(
