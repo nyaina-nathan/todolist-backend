@@ -36,6 +36,12 @@ public class GlobalExceptionHandler {
 		return build(HttpStatus.CONFLICT, ex.getMessage(), request, List.of());
 	}
 
+	@ExceptionHandler(InvalidCredentialsException.class)
+	public ResponseEntity<ErrorResponse> handleInvalidCredentials(
+			InvalidCredentialsException ex, HttpServletRequest request) {
+		return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request, List.of());
+	}
+
 	private ResponseEntity<ErrorResponse> build(
 			HttpStatus status, String message, HttpServletRequest request, List<String> details) {
 		return ResponseEntity.status(status)

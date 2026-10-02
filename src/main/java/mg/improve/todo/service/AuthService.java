@@ -6,16 +6,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import mg.improve.todo.config.JwtService;
+import mg.improve.todo.domain.dto.AuthResult;
+import mg.improve.todo.domain.dto.LoginRequest;
 import mg.improve.todo.domain.dto.RegisterRequest;
-import mg.improve.todo.domain.dto.RegistrationResult;
 import mg.improve.todo.domain.entity.RefreshToken;
 import mg.improve.todo.domain.entity.User;
 import mg.improve.todo.domain.mappers.RefreshTokenMapper;
 import mg.improve.todo.domain.mappers.UserMapper;
 import mg.improve.todo.exception.EmailAlreadyUsedException;
+import mg.improve.todo.exception.InvalidCredentialsException;
 import mg.improve.todo.repository.RefreshTokenRepository;
 import mg.improve.todo.repository.UserRepository;
 import mg.improve.todo.repository.entity.JUser;
+import mg.improve.todo.validators.LoginValidator;
 import mg.improve.todo.validators.RegisterValidator;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseCookie;
@@ -41,6 +44,9 @@ public class AuthService {
 
 	public static final String REFRESH_TOKEN_COOKIE = "refresh_token";
 
+	private static final String DUMMY_PASSWORD_HASH =
+			"$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
+
 	private final UserRepository userRepository;
 
 	private final RefreshTokenRepository refreshTokenRepository;
@@ -55,9 +61,10 @@ public class AuthService {
 
 	private final RegisterValidator registerValidator;
 
+	private final LoginValidator loginValidator;
 
 	@Transactional
-	public RegistrationResult register(RegisterRequest request) {
+	public AuthResult register(RegisterRequest request) {
 		registerValidator.validate(request);
 
 		String email = request.email().trim();
@@ -78,27 +85,47 @@ public class AuthService {
 			throw new EmailAlreadyUsedException(email);
 		}
 
-		User registered = userMapper.toDomain(saved);
+		return issueTokens(userMapper.toDomain(saved));
+	}
 
+	@Transactional
+	public AuthResult login(LoginRequest request) {
+		loginValidator.validate(request);
+
+		String email = request.email().trim();
+		JUser jpa = userRepository.findByEmail(email).orElse(null);
+
+		String passwordHash =
+				(jpa != null && jpa.getPasswordHash() != null) ? jpa.getPasswordHash() : DUMMY_PASSWORD_HASH;
+		boolean passwordMatches = passwordEncoder.matches(request.password(), passwordHash);
+
+		if (jpa == null || !passwordMatches) {
+			throw new InvalidCredentialsException();
+		}
+
+		return issueTokens(userMapper.toDomain(jpa));
+	}
+
+	private AuthResult issueTokens(User user) {
 		Duration accessTtl = Duration.ofMillis(jwtService.getAccessExpiration());
 		Duration refreshTtl = Duration.ofMillis(jwtService.getRefreshExpiration());
 
 		String accessToken = jwtService.createToken(
-				registered.getId(), true, Map.of(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE));
+				user.getId(), true, Map.of(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE));
 
 		UUID refreshTokenValue = UUID.randomUUID();
 		String refreshToken = jwtService.createToken(
-				registered.getId(), false, Map.of(
+				user.getId(), false, Map.of(
 						TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE,
 						REFRESH_TOKEN_VALUE_CLAIM, refreshTokenValue.toString()));
 
 		var persistedRefreshToken = new RefreshToken();
-		persistedRefreshToken.setUser(registered);
+		persistedRefreshToken.setUser(user);
 		persistedRefreshToken.setValue(refreshTokenValue.toString());
 		persistedRefreshToken.setExpiresAt(Instant.now().plus(refreshTtl));
 		refreshTokenRepository.save(refreshTokenMapper.toJpa(persistedRefreshToken));
 
-		return new RegistrationResult(registered, List.of(
+		return new AuthResult(user, List.of(
 				buildCookie(ACCESS_TOKEN_COOKIE, accessToken, accessTtl),
 				buildCookie(REFRESH_TOKEN_COOKIE, refreshToken, refreshTtl)));
 	}
