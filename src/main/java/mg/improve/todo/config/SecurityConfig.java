@@ -38,7 +38,7 @@ public class SecurityConfig {
 				.exceptionHandling(exception -> exception
 						.authenticationEntryPoint(restAuthenticationEntryPoint))
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/auth/register", "/auth/login", "/auth/refresh").permitAll()
+						.requestMatchers("/auth/register", "/auth/login", "/auth/refresh", "/error").permitAll()
 						.anyRequest().authenticated())
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();

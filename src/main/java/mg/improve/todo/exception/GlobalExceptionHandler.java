@@ -71,6 +71,12 @@ public class GlobalExceptionHandler {
 		return build(HttpStatus.NOT_FOUND, ex.getMessage(), request, List.of());
 	}
 
+	@ExceptionHandler(EventNotFoundException.class)
+	public ResponseEntity<ErrorResponse> handleEventNotFound(
+			EventNotFoundException ex, HttpServletRequest request) {
+		return build(HttpStatus.NOT_FOUND, ex.getMessage(), request, List.of());
+	}
+
 	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
 	public ResponseEntity<ErrorResponse> handleTypeMismatch(
 			MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
