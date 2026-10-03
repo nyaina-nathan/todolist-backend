@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import mg.improve.todo.domain.dto.TodoCreateRequest;
-import mg.improve.todo.domain.dto.TodoUpdateRequest;
+import mg.improve.todo.domain.dto.request.TodoCreateRequest;
+import mg.improve.todo.domain.dto.request.TodoUpdateRequest;
 import mg.improve.todo.exception.ValidationException;
 
 @Component

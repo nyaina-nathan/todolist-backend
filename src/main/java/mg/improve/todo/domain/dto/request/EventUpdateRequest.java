@@ -1,24 +1,24 @@
-package mg.improve.todo.domain.dto;
+package mg.improve.todo.domain.dto.request;
 
 import java.time.Instant;
 
-public class TodoUpdateRequest {
+public class EventUpdateRequest {
 
 	private String title;
 
 	private String description;
 
-	private Boolean done;
+	private Instant startTime;
 
-	private Instant dueDate;
+	private Instant endTime;
 
 	private boolean titlePresent;
 
 	private boolean descriptionPresent;
 
-	private boolean donePresent;
+	private boolean startTimePresent;
 
-	private boolean dueDatePresent;
+	private boolean endTimePresent;
 
 	public String getTitle() {
 		return title;
@@ -38,22 +38,22 @@ public class TodoUpdateRequest {
 		this.descriptionPresent = true;
 	}
 
-	public Boolean getDone() {
-		return done;
+	public Instant getStartTime() {
+		return startTime;
 	}
 
-	public void setDone(Boolean done) {
-		this.done = done;
-		this.donePresent = true;
+	public void setStartTime(Instant startTime) {
+		this.startTime = startTime;
+		this.startTimePresent = true;
 	}
 
-	public Instant getDueDate() {
-		return dueDate;
+	public Instant getEndTime() {
+		return endTime;
 	}
 
-	public void setDueDate(Instant dueDate) {
-		this.dueDate = dueDate;
-		this.dueDatePresent = true;
+	public void setEndTime(Instant endTime) {
+		this.endTime = endTime;
+		this.endTimePresent = true;
 	}
 
 	public boolean isTitlePresent() {
@@ -64,11 +64,11 @@ public class TodoUpdateRequest {
 		return descriptionPresent;
 	}
 
-	public boolean isDonePresent() {
-		return donePresent;
+	public boolean isStartTimePresent() {
+		return startTimePresent;
 	}
 
-	public boolean isDueDatePresent() {
-		return dueDatePresent;
+	public boolean isEndTimePresent() {
+		return endTimePresent;
 	}
 }

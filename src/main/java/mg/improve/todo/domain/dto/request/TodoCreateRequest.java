@@ -1,4 +1,4 @@
-package mg.improve.todo.domain.dto;
+package mg.improve.todo.domain.dto.request;
 
 import java.time.Instant;
 

@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
-import mg.improve.todo.domain.dto.RegisterRequest;
+import mg.improve.todo.domain.dto.request.RegisterRequest;
 import mg.improve.todo.exception.ValidationException;
 
 @Component

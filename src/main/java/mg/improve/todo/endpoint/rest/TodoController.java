@@ -2,10 +2,10 @@ package mg.improve.todo.endpoint.rest;
 
 import java.util.UUID;
 
-import mg.improve.todo.domain.dto.TodoCreateRequest;
-import mg.improve.todo.domain.dto.TodoPage;
-import mg.improve.todo.domain.dto.TodoResponse;
-import mg.improve.todo.domain.dto.TodoUpdateRequest;
+import mg.improve.todo.domain.dto.request.TodoCreateRequest;
+import mg.improve.todo.domain.dto.response.TodoPage;
+import mg.improve.todo.domain.dto.response.TodoResponse;
+import mg.improve.todo.domain.dto.request.TodoUpdateRequest;
 import mg.improve.todo.service.TodoService;
 
 import org.springframework.http.HttpStatus;

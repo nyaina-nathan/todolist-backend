@@ -4,10 +4,10 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import mg.improve.todo.domain.dto.EventCreateRequest;
-import mg.improve.todo.domain.dto.EventPage;
-import mg.improve.todo.domain.dto.EventResponse;
-import mg.improve.todo.domain.dto.EventUpdateRequest;
+import mg.improve.todo.domain.dto.request.EventCreateRequest;
+import mg.improve.todo.domain.dto.response.EventPage;
+import mg.improve.todo.domain.dto.response.EventResponse;
+import mg.improve.todo.domain.dto.request.EventUpdateRequest;
 import mg.improve.todo.service.EventService;
 
 import org.springframework.format.annotation.DateTimeFormat;

@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
-import mg.improve.todo.domain.dto.ErrorResponse;
+import mg.improve.todo.domain.dto.response.ErrorResponse;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

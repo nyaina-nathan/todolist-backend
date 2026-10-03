@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 
 import mg.improve.todo.config.AuthCookieFactory;
-import mg.improve.todo.domain.dto.ErrorResponse;
+import mg.improve.todo.domain.dto.response.ErrorResponse;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

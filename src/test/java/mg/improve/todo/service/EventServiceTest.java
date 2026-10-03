@@ -26,11 +26,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
-import mg.improve.todo.domain.dto.EventCreateRequest;
-import mg.improve.todo.domain.dto.EventPage;
-import mg.improve.todo.domain.dto.EventResponse;
-import mg.improve.todo.domain.dto.EventUpdateRequest;
-import mg.improve.todo.domain.dto.PageMeta;
+import mg.improve.todo.domain.dto.request.EventCreateRequest;
+import mg.improve.todo.domain.dto.response.EventPage;
+import mg.improve.todo.domain.dto.response.EventResponse;
+import mg.improve.todo.domain.dto.request.EventUpdateRequest;
+import mg.improve.todo.domain.dto.response.PageMeta;
 import mg.improve.todo.domain.entity.Event;
 import mg.improve.todo.domain.mappers.EventMapper;
 import mg.improve.todo.exception.EventNotFoundException;

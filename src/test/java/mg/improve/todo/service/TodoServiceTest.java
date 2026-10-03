@@ -26,10 +26,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import mg.improve.todo.domain.dto.PageMeta;
-import mg.improve.todo.domain.dto.TodoCreateRequest;
-import mg.improve.todo.domain.dto.TodoPage;
-import mg.improve.todo.domain.dto.TodoUpdateRequest;
+import mg.improve.todo.domain.dto.response.PageMeta;
+import mg.improve.todo.domain.dto.request.TodoCreateRequest;
+import mg.improve.todo.domain.dto.response.TodoPage;
+import mg.improve.todo.domain.dto.request.TodoUpdateRequest;
 import mg.improve.todo.domain.entity.Todo;
 import mg.improve.todo.domain.entity.User;
 import mg.improve.todo.domain.mappers.TodoMapper;

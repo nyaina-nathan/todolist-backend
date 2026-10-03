@@ -6,12 +6,12 @@ import java.util.UUID;
 import jakarta.servlet.http.HttpServletResponse;
 
 import mg.improve.todo.config.AuthCookieFactory;
-import mg.improve.todo.domain.dto.AuthResponse;
+import mg.improve.todo.domain.dto.response.AuthResponse;
 import mg.improve.todo.domain.dto.AuthResult;
-import mg.improve.todo.domain.dto.LoginRequest;
+import mg.improve.todo.domain.dto.request.LoginRequest;
 import mg.improve.todo.domain.dto.RefreshResult;
-import mg.improve.todo.domain.dto.RegisterRequest;
-import mg.improve.todo.domain.dto.UserResponse;
+import mg.improve.todo.domain.dto.request.RegisterRequest;
+import mg.improve.todo.domain.dto.response.UserResponse;
 import mg.improve.todo.service.AuthService;
 
 import org.springframework.http.HttpHeaders;

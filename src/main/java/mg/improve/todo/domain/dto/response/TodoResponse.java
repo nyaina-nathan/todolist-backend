@@ -1,4 +1,4 @@
-package mg.improve.todo.domain.dto;
+package mg.improve.todo.domain.dto.response;
 
 import java.time.Instant;
 import java.util.UUID;
