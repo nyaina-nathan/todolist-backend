@@ -7,12 +7,15 @@ import java.util.List;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
+import mg.improve.todo.domain.dto.response.EventResponse;
 import mg.improve.todo.domain.dto.response.StatsResponse;
 import mg.improve.todo.domain.dto.response.TodoResponse;
+import mg.improve.todo.domain.mappers.EventMapper;
 import mg.improve.todo.domain.mappers.TodoMapper;
 import mg.improve.todo.repository.EventRepository;
 import mg.improve.todo.repository.TodoRepository;
 import mg.improve.todo.repository.entity.JEvent;
+import mg.improve.todo.validators.StatsValidator;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,8 +32,14 @@ public class StatsService {
 
 	private final TodoMapper todoMapper;
 
+	private final EventMapper eventMapper;
+
+	private final StatsValidator statsValidator;
+
 	@Transactional(readOnly = true)
-	public StatsResponse getStats(UUID userId) {
+	public StatsResponse getStats(UUID userId, Instant from, Instant to) {
+		statsValidator.validateRange(from, to);
+
 		Instant now = Instant.now();
 		Instant horizon = now.plus(UPCOMING_WINDOW_DAYS, ChronoUnit.DAYS);
 
@@ -48,10 +57,33 @@ public class StatsService {
 				.map(TodoResponse::from)
 				.orElse(null);
 
+		Instant windowFrom = from == null ? now : from;
+		Instant windowTo = to == null ? horizon : to;
+
+		List<JEvent> windowEvents = from == null
+				? upcomingEvents
+				: eventRepository
+						.findAllByTodoUserIdAndStartTimeBetweenOrderByStartTimeAsc(
+								userId, windowFrom, windowTo);
+		List<EventResponse> events = windowEvents.stream()
+				.map(eventMapper::toDomain)
+				.map(EventResponse::from)
+				.toList();
+
+		List<TodoResponse> deadlines = todoRepository
+				.findAllByUserIdAndDoneFalseAndDueDateBetweenOrderByDueDateAsc(
+						userId, windowFrom, windowTo)
+				.stream()
+				.map(todoMapper::toDomain)
+				.map(TodoResponse::from)
+				.toList();
+
 		return new StatsResponse(
 				undoneTodoCount,
 				upcomingEvents.size(),
 				totalLength.toString(),
-				closestDeadlineTodo);
+				closestDeadlineTodo,
+				events,
+				deadlines);
 	}
 }

@@ -434,10 +434,34 @@ paths:
       tags: [Stats]
       summary: Get aggregated statistics for the authenticated user
       description: >-
-        Returns the number of todos that are not done yet, the number of
-        events starting in the next 7 days together with their total length,
-        and the not-done todo with the closest future deadline.
+        Returns home-page summary statistics (undone todo count, number of
+        events in the next 7 days with their total length, and the not-done
+        todo with the closest future deadline) together with the calendar
+        data for the requested range: the `events` starting in the range and
+        the not-done `deadlines` due in the range. `from` and `to` are
+        optional but must be provided together; when omitted the calendar
+        range defaults to the next 7 days. The summary values are always
+        computed over the next 7 days and are not affected by the range.
       operationId: getStats
+      parameters:
+        - name: from
+          in: query
+          required: false
+          description: >-
+            Start of the range used to fetch events and the closest deadline.
+            Must be provided together with `to`.
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: false
+          description: >-
+            End of the range used to fetch events and the closest deadline.
+            Must be provided together with `from`.
+          schema:
+            type: string
+            format: date-time
       responses:
         '200':
           description: Aggregated statistics
@@ -445,6 +469,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StatsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
 
@@ -719,7 +745,12 @@ components:
           format: date-time
     StatsResponse:
       type: object
-      required: [undoneTodoCount, upcomingEventCount, upcomingEventsTotalLength]
+      required:
+        - undoneTodoCount
+        - upcomingEventCount
+        - upcomingEventsTotalLength
+        - events
+        - deadlines
       properties:
         undoneTodoCount:
           type: integer
@@ -742,6 +773,21 @@ components:
           nullable: true
           allOf:
             - $ref: '#/components/schemas/Todo'
+        events:
+          type: array
+          description: >-
+            Events of the calendar range, ordered by start time ascending.
+            The range is `from .. to` when provided, otherwise the next 7 days.
+          items:
+            $ref: '#/components/schemas/Event'
+        deadlines:
+          type: array
+          description: >-
+            Not-done todos due within the calendar range, ordered by due date
+            ascending. The range is `from .. to` when provided, otherwise the
+            next 7 days.
+          items:
+            $ref: '#/components/schemas/Todo'
     Error:
       type: object
       required: [code, message]

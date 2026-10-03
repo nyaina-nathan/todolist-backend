@@ -45,7 +45,11 @@ class StatsControllerIT extends AbstractControllerIT {
 				.andExpect(jsonPath("$.upcomingEventCount").value(2))
 				.andExpect(jsonPath("$.upcomingEventsTotalLength").value("PT2H"))
 				.andExpect(jsonPath("$.closestDeadlineTodo.id").value(closestId))
-				.andExpect(jsonPath("$.closestDeadlineTodo.title").value("Closest"));
+				.andExpect(jsonPath("$.closestDeadlineTodo.title").value("Closest"))
+				.andExpect(jsonPath("$.events.length()").value(2))
+				.andExpect(jsonPath("$.deadlines.length()").value(2))
+				.andExpect(jsonPath("$.deadlines[0].id").value(closestId))
+				.andExpect(jsonPath("$.deadlines[1].id").value(laterId));
 	}
 
 	@Test
@@ -57,7 +61,9 @@ class StatsControllerIT extends AbstractControllerIT {
 				.andExpect(jsonPath("$.undoneTodoCount").value(0))
 				.andExpect(jsonPath("$.upcomingEventCount").value(0))
 				.andExpect(jsonPath("$.upcomingEventsTotalLength").value("PT0S"))
-				.andExpect(jsonPath("$.closestDeadlineTodo").value(nullValue()));
+				.andExpect(jsonPath("$.closestDeadlineTodo").value(nullValue()))
+				.andExpect(jsonPath("$.events").isEmpty())
+				.andExpect(jsonPath("$.deadlines").isEmpty());
 	}
 
 	@Test
@@ -79,6 +85,78 @@ class StatsControllerIT extends AbstractControllerIT {
 	@Test
 	void statsRequireAuthentication() throws Exception {
 		mockMvc.perform(get("/stats")).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void statsScopesOnlyCalendarListsToProvidedRange() throws Exception {
+		AuthSession session = register(uniqueEmail());
+		Instant now = Instant.now();
+
+		String pastId = createTodo(session, "Past", now.minus(3, DAYS));
+		String futureId = createTodo(session, "Future", now.plus(10, DAYS));
+		String pastEventId = createEvent(
+				session, pastId, now.minus(5, DAYS), now.minus(5, DAYS).plus(1, HOURS));
+		String futureEventId = createEvent(
+				session, futureId, now.plus(1, HOURS), now.plus(2, HOURS));
+
+		mockMvc.perform(get("/stats")
+						.cookie(session.accessCookie())
+						.param("from", DateTimeFormatter.ISO_INSTANT.format(now.minus(7, DAYS)))
+						.param("to", DateTimeFormatter.ISO_INSTANT.format(now.minus(1, DAYS))))
+				.andExpect(status().isOk())
+				// the four summaries stay on the now-based window
+				.andExpect(jsonPath("$.undoneTodoCount").value(2))
+				.andExpect(jsonPath("$.upcomingEventCount").value(1))
+				.andExpect(jsonPath("$.upcomingEventsTotalLength").value("PT1H"))
+				.andExpect(jsonPath("$.closestDeadlineTodo.id").value(futureId))
+				// the calendar lists use the provided range
+				.andExpect(jsonPath("$.events.length()").value(1))
+				.andExpect(jsonPath("$.events[0].id").value(pastEventId))
+				.andExpect(jsonPath("$.deadlines.length()").value(1))
+				.andExpect(jsonPath("$.deadlines[0].id").value(pastId));
+
+		mockMvc.perform(get("/stats").cookie(session.accessCookie()))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.upcomingEventCount").value(1))
+				.andExpect(jsonPath("$.upcomingEventsTotalLength").value("PT1H"))
+				.andExpect(jsonPath("$.closestDeadlineTodo.id").value(futureId))
+				// without a range the calendar defaults to the next 7 days
+				.andExpect(jsonPath("$.events.length()").value(1))
+				.andExpect(jsonPath("$.events[0].id").value(futureEventId))
+				.andExpect(jsonPath("$.deadlines").isEmpty());
+	}
+
+	@Test
+	void statsRejectPartialRange() throws Exception {
+		AuthSession session = register(uniqueEmail());
+		Instant now = Instant.now();
+
+		mockMvc.perform(get("/stats")
+						.cookie(session.accessCookie())
+						.param("from", DateTimeFormatter.ISO_INSTANT.format(now)))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.details[0]")
+						.value("from and to must be provided together"));
+
+		mockMvc.perform(get("/stats")
+						.cookie(session.accessCookie())
+						.param("to", DateTimeFormatter.ISO_INSTANT.format(now)))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.details[0]")
+						.value("from and to must be provided together"));
+	}
+
+	@Test
+	void statsRejectFromAfterTo() throws Exception {
+		AuthSession session = register(uniqueEmail());
+		Instant now = Instant.now();
+
+		mockMvc.perform(get("/stats")
+						.cookie(session.accessCookie())
+						.param("from", DateTimeFormatter.ISO_INSTANT.format(now))
+						.param("to", DateTimeFormatter.ISO_INSTANT.format(now.minus(1, DAYS))))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.details[0]").value("from must not be after to"));
 	}
 
 	private String createTodo(AuthSession session, String title, Instant dueDate)

@@ -1,6 +1,7 @@
 package mg.improve.todo.repository;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,4 +33,7 @@ public interface TodoRepository extends JpaRepository<JTodo, UUID> {
 
 	Optional<JTodo> findFirstByUserIdAndDoneFalseAndDueDateGreaterThanEqualOrderByDueDateAsc(
 			UUID userId, Instant dueDate);
+
+	List<JTodo> findAllByUserIdAndDoneFalseAndDueDateBetweenOrderByDueDateAsc(
+			UUID userId, Instant from, Instant to);
 }
