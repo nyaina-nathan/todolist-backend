@@ -34,10 +34,10 @@ public class TodoController {
 	@GetMapping
 	public ResponseEntity<TodoPage> listTodos(
 			@AuthenticationPrincipal UUID userId,
-			@RequestParam(required = false) Boolean isDone,
-			@RequestParam(required = false) String title,
-			@RequestParam(defaultValue = "1") int page,
-			@RequestParam(defaultValue = "20") int perPage) {
+			@RequestParam(value = "isDone", required = false) Boolean isDone,
+			@RequestParam(value = "title", required = false) String title,
+			@RequestParam(value = "page", defaultValue = "1") int page,
+			@RequestParam(value = "perPage", defaultValue = "20") int perPage) {
 		return ResponseEntity.ok(todoService.listTodos(userId, isDone, title, page, perPage));
 	}
 
@@ -51,21 +51,21 @@ public class TodoController {
 
 	@GetMapping("/{todoId}")
 	public ResponseEntity<TodoResponse> getTodo(
-			@AuthenticationPrincipal UUID userId, @PathVariable UUID todoId) {
+			@AuthenticationPrincipal UUID userId, @PathVariable("todoId") UUID todoId) {
 		return ResponseEntity.ok(TodoResponse.from(todoService.getTodo(userId, todoId)));
 	}
 
 	@PatchMapping("/{todoId}")
 	public ResponseEntity<TodoResponse> updateTodo(
 			@AuthenticationPrincipal UUID userId,
-			@PathVariable UUID todoId,
+			@PathVariable("todoId") UUID todoId,
 			@RequestBody TodoUpdateRequest request) {
 		return ResponseEntity.ok(TodoResponse.from(todoService.updateTodo(userId, todoId, request)));
 	}
 
 	@DeleteMapping("/{todoId}")
 	public ResponseEntity<Void> deleteTodo(
-			@AuthenticationPrincipal UUID userId, @PathVariable UUID todoId) {
+			@AuthenticationPrincipal UUID userId, @PathVariable("todoId") UUID todoId) {
 		todoService.deleteTodo(userId, todoId);
 		return ResponseEntity.noContent().build();
 	}

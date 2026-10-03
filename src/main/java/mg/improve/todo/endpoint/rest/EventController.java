@@ -34,14 +34,14 @@ public class EventController {
 
 	@GetMapping("/todos/{todoId}/events")
 	public ResponseEntity<List<EventResponse>> listTodoEvents(
-			@AuthenticationPrincipal UUID userId, @PathVariable UUID todoId) {
+			@AuthenticationPrincipal UUID userId, @PathVariable("todoId") UUID todoId) {
 		return ResponseEntity.ok(eventService.listTodoEvents(userId, todoId));
 	}
 
 	@PostMapping("/todos/{todoId}/events")
 	public ResponseEntity<EventResponse> createTodoEvent(
 			@AuthenticationPrincipal UUID userId,
-			@PathVariable UUID todoId,
+			@PathVariable("todoId") UUID todoId,
 			@RequestBody EventCreateRequest request) {
 		EventResponse body = EventResponse.from(eventService.createTodoEvent(userId, todoId, request));
 		return ResponseEntity.status(HttpStatus.CREATED).body(body);
@@ -50,23 +50,23 @@ public class EventController {
 	@GetMapping("/events")
 	public ResponseEntity<EventPage> listEvents(
 			@AuthenticationPrincipal UUID userId,
-			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
-			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
-			@RequestParam(defaultValue = "1") int page,
-			@RequestParam(defaultValue = "20") int perPage) {
+			@RequestParam(value = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
+			@RequestParam(value = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+			@RequestParam(value = "page", defaultValue = "1") int page,
+			@RequestParam(value = "perPage", defaultValue = "20") int perPage) {
 		return ResponseEntity.ok(eventService.listEvents(userId, from, to, page, perPage));
 	}
 
 	@GetMapping("/events/{eventId}")
 	public ResponseEntity<EventResponse> getEvent(
-			@AuthenticationPrincipal UUID userId, @PathVariable UUID eventId) {
+			@AuthenticationPrincipal UUID userId, @PathVariable("eventId") UUID eventId) {
 		return ResponseEntity.ok(EventResponse.from(eventService.getEvent(userId, eventId)));
 	}
 
 	@PatchMapping("/events/{eventId}")
 	public ResponseEntity<EventResponse> updateEvent(
 			@AuthenticationPrincipal UUID userId,
-			@PathVariable UUID eventId,
+			@PathVariable("eventId") UUID eventId,
 			@RequestBody EventUpdateRequest request) {
 		return ResponseEntity.ok(
 				EventResponse.from(eventService.updateEvent(userId, eventId, request)));
@@ -74,7 +74,7 @@ public class EventController {
 
 	@DeleteMapping("/events/{eventId}")
 	public ResponseEntity<Void> deleteEvent(
-			@AuthenticationPrincipal UUID userId, @PathVariable UUID eventId) {
+			@AuthenticationPrincipal UUID userId, @PathVariable("eventId") UUID eventId) {
 		eventService.deleteEvent(userId, eventId);
 		return ResponseEntity.noContent().build();
 	}
