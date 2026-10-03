@@ -1,5 +1,6 @@
 package mg.improve.todo.validators;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,6 +54,13 @@ public class EventValidator {
 			details.add("perPage must be at least 1");
 		}
 		throwIfInvalid(details);
+	}
+
+	public void validateWithinDueDate(Instant endTime, Instant dueDate) {
+		if (endTime != null && dueDate != null && endTime.isAfter(dueDate)) {
+			throw new ValidationException(
+					List.of("endTime must not be after the todo's due date"));
+		}
 	}
 
 	private void validateTitle(String title, List<String> details) {

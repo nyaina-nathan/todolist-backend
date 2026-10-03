@@ -61,6 +61,7 @@ public class EventService {
 
 		Instant startTime = request.startTime();
 		Instant endTime = request.endTime();
+		eventValidator.validateWithinDueDate(endTime, todo.getDueDate());
 		eventRepository
 				.findFirstByTodoUserIdAndStartTimeBeforeAndEndTimeAfterOrderByStartTimeAsc(
 						userId, endTime, startTime)
@@ -122,6 +123,7 @@ public class EventService {
 		if (endTime.isBefore(startTime)) {
 			throw new ValidationException(List.of("endTime must not be before startTime"));
 		}
+		eventValidator.validateWithinDueDate(endTime, jpa.getTodo().getDueDate());
 
 		eventRepository
 				.findFirstByTodoUserIdAndIdNotAndStartTimeBeforeAndEndTimeAfterOrderByStartTimeAsc(

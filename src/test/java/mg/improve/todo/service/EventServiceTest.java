@@ -171,6 +171,25 @@ class EventServiceTest {
 	}
 
 	@Test
+	void createTodoEventRejectsEndAfterTodoDueDate() {
+		UUID todoId = UUID.randomUUID();
+		JTodo ownedTodo = new JTodo();
+		ownedTodo.setId(todoId);
+		ownedTodo.setDueDate(END);
+		Instant endAfterDue = END.plusSeconds(3600);
+		EventCreateRequest request = new EventCreateRequest("standup", null, START, endAfterDue);
+
+		given(todoRepository.findByIdAndUserId(todoId, USER_ID)).willReturn(Optional.of(ownedTodo));
+		willThrow(new ValidationException(List.of("endTime must not be after the todo's due date")))
+				.given(eventValidator)
+				.validateWithinDueDate(endAfterDue, END);
+
+		assertThatThrownBy(() -> eventService.createTodoEvent(USER_ID, todoId, request))
+				.isInstanceOf(ValidationException.class);
+		verify(eventRepository, never()).save(any());
+	}
+
+	@Test
 	@SuppressWarnings("unchecked")
 	void listEventsReturnsPageWithMeta() {
 		JEvent jpa = jEvent(UUID.randomUUID());
@@ -238,6 +257,7 @@ class EventServiceTest {
 	void updateEventAppliesPartialChanges() {
 		UUID eventId = UUID.randomUUID();
 		JEvent jpa = jEvent(eventId);
+		jpa.setTodo(jTodo(END.plusSeconds(86400)));
 		jpa.setTitle("old");
 		jpa.setStartTime(START);
 		jpa.setEndTime(END);
@@ -281,6 +301,7 @@ class EventServiceTest {
 	void updateEventRejectsOverlappingEvent() {
 		UUID eventId = UUID.randomUUID();
 		JEvent jpa = jEvent(eventId);
+		jpa.setTodo(jTodo(END.plusSeconds(86400)));
 		jpa.setStartTime(START);
 		jpa.setEndTime(END);
 		JEvent conflict = jEvent(UUID.randomUUID());
@@ -300,6 +321,28 @@ class EventServiceTest {
 				.isInstanceOf(EventConflictException.class)
 				.satisfies(ex -> assertThat(((EventConflictException) ex).getEvent().id())
 						.isEqualTo(conflict.getId()));
+		verify(eventRepository, never()).save(any());
+	}
+
+	@Test
+	void updateEventRejectsEndAfterTodoDueDate() {
+		UUID eventId = UUID.randomUUID();
+		JEvent jpa = jEvent(eventId);
+		jpa.setTodo(jTodo(END));
+		jpa.setStartTime(START);
+		jpa.setEndTime(END);
+		Instant endAfterDue = END.plusSeconds(3600);
+
+		EventUpdateRequest request = new EventUpdateRequest();
+		request.setEndTime(endAfterDue);
+
+		given(eventRepository.findByIdAndTodoUserId(eventId, USER_ID)).willReturn(Optional.of(jpa));
+		willThrow(new ValidationException(List.of("endTime must not be after the todo's due date")))
+				.given(eventValidator)
+				.validateWithinDueDate(endAfterDue, END);
+
+		assertThatThrownBy(() -> eventService.updateEvent(USER_ID, eventId, request))
+				.isInstanceOf(ValidationException.class);
 		verify(eventRepository, never()).save(any());
 	}
 
@@ -341,6 +384,12 @@ class EventServiceTest {
 		var jpa = new JEvent();
 		jpa.setId(id);
 		return jpa;
+	}
+
+	private JTodo jTodo(Instant dueDate) {
+		var todo = new JTodo();
+		todo.setDueDate(dueDate);
+		return todo;
 	}
 
 	private Event event(UUID id) {

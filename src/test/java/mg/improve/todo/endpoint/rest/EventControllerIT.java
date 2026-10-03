@@ -57,7 +57,7 @@ class EventControllerIT extends AbstractControllerIT {
 	@Test
 	void listEventsSupportsDateRangeAndPagination() throws Exception {
 		AuthSession session = register(uniqueEmail());
-		String todoId = createTodo(session, "Plan sprint");
+		String todoId = createTodo(session, "Plan sprint", "2026-04-01T00:00:00Z");
 		createEvent(session, todoId, "Standup", START, END);
 		createEvent(session, todoId, "Retro", "2026-03-02T09:00:00Z", "2026-03-02T10:00:00Z");
 
@@ -152,9 +152,49 @@ class EventControllerIT extends AbstractControllerIT {
 	}
 
 	@Test
-	void updateEventRejectsOverlap() throws Exception {
+	void createEventRejectsEndAfterTodoDueDate() throws Exception {
 		AuthSession session = register(uniqueEmail());
 		String todoId = createTodo(session, "Plan sprint");
+
+		mockMvc.perform(post("/todos/{todoId}/events", todoId)
+						.cookie(session.accessCookie())
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(eventJson(
+								"Too late", "2026-03-01T10:30:00Z", "2026-03-01T11:00:00Z")))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.code").value(400))
+				.andExpect(jsonPath("$.details[0]")
+						.value("endTime must not be after the todo's due date"));
+	}
+
+	@Test
+	void createEventAllowsEndAtTodoDueDate() throws Exception {
+		AuthSession session = register(uniqueEmail());
+		String todoId = createTodo(session, "Plan sprint");
+
+		createEvent(session, todoId, "Just in time", START, DUE_DATE);
+	}
+
+	@Test
+	void updateEventRejectsEndAfterTodoDueDate() throws Exception {
+		AuthSession session = register(uniqueEmail());
+		String todoId = createTodo(session, "Plan sprint");
+		String eventId = createEvent(session, todoId, "Standup", START, END);
+
+		mockMvc.perform(patch("/events/{eventId}", eventId)
+						.cookie(session.accessCookie())
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"endTime\":\"2026-03-01T10:30:00Z\"}"))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.code").value(400))
+				.andExpect(jsonPath("$.details[0]")
+						.value("endTime must not be after the todo's due date"));
+	}
+
+	@Test
+	void updateEventRejectsOverlap() throws Exception {
+		AuthSession session = register(uniqueEmail());
+		String todoId = createTodo(session, "Plan sprint", "2026-04-01T00:00:00Z");
 		String firstId = createEvent(session, todoId, "Standup", START, END);
 		String secondId = createEvent(
 				session, todoId, "Retro", "2026-03-01T11:00:00Z", "2026-03-01T12:00:00Z");
@@ -201,11 +241,15 @@ class EventControllerIT extends AbstractControllerIT {
 	}
 
 	private String createTodo(AuthSession session, String title) throws Exception {
+		return createTodo(session, title, DUE_DATE);
+	}
+
+	private String createTodo(AuthSession session, String title, String dueDate) throws Exception {
 		MvcResult result = mockMvc.perform(post("/todos")
 						.cookie(session.accessCookie())
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("{\"title\":\"%s\",\"description\":\"desc\",\"dueDate\":\"%s\"}"
-								.formatted(title, DUE_DATE)))
+								.formatted(title, dueDate)))
 				.andExpect(status().isCreated())
 				.andReturn();
 		return JsonPath.read(result.getResponse().getContentAsString(), "$.id");
