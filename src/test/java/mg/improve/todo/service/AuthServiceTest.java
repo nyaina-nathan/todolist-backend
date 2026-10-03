@@ -323,6 +323,55 @@ class AuthServiceTest {
 		verify(userRepository, never()).delete(any());
 	}
 
+	@Test
+	void logoutDeletesAllUserRefreshTokensAndClearsCookies() {
+		given(authCookieFactory.clearAuthCookies())
+				.willReturn(List.of(cookie("access_token"), cookie("refresh_token")));
+
+		List<ResponseCookie> cookies = authService.logout(USER_ID, null);
+
+		assertThat(cookies).hasSize(2);
+		verify(refreshTokenRepository).deleteByUser_Id(USER_ID);
+	}
+
+	@Test
+	void logoutFallsBackToRefreshTokenUserWhenNoPrincipal() {
+		given(jwtService.verifyToken(RAW_REFRESH)).willReturn(true);
+		given(jwtService.extractClaim(RAW_REFRESH, AuthService.TOKEN_TYPE_CLAIM))
+				.willReturn(AuthService.REFRESH_TOKEN_TYPE);
+		given(jwtService.extractSubject(RAW_REFRESH)).willReturn(USER_ID.toString());
+		given(authCookieFactory.clearAuthCookies())
+				.willReturn(List.of(cookie("access_token"), cookie("refresh_token")));
+
+		List<ResponseCookie> cookies = authService.logout(null, RAW_REFRESH);
+
+		assertThat(cookies).hasSize(2);
+		verify(refreshTokenRepository).deleteByUser_Id(USER_ID);
+	}
+
+	@Test
+	void logoutWithoutIdentityOnlyClearsCookies() {
+		given(authCookieFactory.clearAuthCookies())
+				.willReturn(List.of(cookie("access_token"), cookie("refresh_token")));
+
+		List<ResponseCookie> cookies = authService.logout(null, null);
+
+		assertThat(cookies).hasSize(2);
+		verifyNoInteractions(refreshTokenRepository);
+	}
+
+	@Test
+	void logoutIgnoresInvalidRefreshToken() {
+		given(jwtService.verifyToken(RAW_REFRESH)).willReturn(false);
+		given(authCookieFactory.clearAuthCookies())
+				.willReturn(List.of(cookie("access_token"), cookie("refresh_token")));
+
+		List<ResponseCookie> cookies = authService.logout(null, RAW_REFRESH);
+
+		assertThat(cookies).hasSize(2);
+		verifyNoInteractions(refreshTokenRepository);
+	}
+
 	private void stubIssuedTokens() {
 		given(jwtService.getAccessExpiration()).willReturn(ACCESS_TTL_MS);
 		given(jwtService.getRefreshExpiration()).willReturn(REFRESH_TTL_MS);

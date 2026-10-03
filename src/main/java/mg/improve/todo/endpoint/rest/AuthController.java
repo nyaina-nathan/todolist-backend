@@ -60,6 +60,16 @@ public class AuthController {
 		return ResponseEntity.ok(result.body());
 	}
 
+	@PostMapping("/logout")
+	public ResponseEntity<Void> logout(
+			@AuthenticationPrincipal UUID userId,
+			@CookieValue(name = AuthCookieFactory.REFRESH_TOKEN_COOKIE, required = false) String refreshToken,
+			HttpServletResponse response) {
+		List<ResponseCookie> cookies = authService.logout(userId, refreshToken);
+		addCookies(cookies, response);
+		return ResponseEntity.noContent().build();
+	}
+
 	@GetMapping("/me")
 	public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal UUID userId) {
 		return ResponseEntity.ok(UserResponse.from(authService.getCurrentUser(userId)));

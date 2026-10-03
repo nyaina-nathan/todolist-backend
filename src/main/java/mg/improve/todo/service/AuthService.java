@@ -176,6 +176,24 @@ public class AuthService {
 		return authCookieFactory.clearAuthCookies();
 	}
 
+	@Transactional
+	public List<ResponseCookie> logout(UUID userId, String rawRefreshToken) {
+		UUID resolvedUserId = (userId != null) ? userId : refreshTokenUserIdOrNull(rawRefreshToken);
+		if (resolvedUserId != null) {
+			refreshTokenRepository.deleteByUser_Id(resolvedUserId);
+		}
+		return authCookieFactory.clearAuthCookies();
+	}
+
+	private UUID refreshTokenUserIdOrNull(String rawRefreshToken) {
+		try {
+			return extractRefreshTokenUser(rawRefreshToken);
+		}
+		catch (InvalidRefreshTokenException e) {
+			return null;
+		}
+	}
+
 	private UUID extractRefreshTokenUser(String rawRefreshToken) {
 		if (rawRefreshToken == null || rawRefreshToken.isBlank()
 				|| !jwtService.verifyToken(rawRefreshToken)) {

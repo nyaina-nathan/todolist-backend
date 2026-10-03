@@ -134,6 +134,55 @@ class AuthControllerIT extends AbstractControllerIT {
 	}
 
 	@Test
+	void logoutClearsCookiesAndRevokesRefreshToken() throws Exception {
+		AuthSession session = register(uniqueEmail());
+
+		mockMvc.perform(post("/auth/logout")
+						.cookie(session.accessCookie(), session.refreshCookie()))
+				.andExpect(status().isNoContent())
+				.andExpect(cookie().maxAge("access_token", 0))
+				.andExpect(cookie().maxAge("refresh_token", 0));
+
+		mockMvc.perform(post("/auth/refresh").cookie(session.refreshCookie()))
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void logoutRevokesRefreshTokenWithoutAccessToken() throws Exception {
+		AuthSession session = register(uniqueEmail());
+
+		mockMvc.perform(post("/auth/logout").cookie(session.refreshCookie()))
+				.andExpect(status().isNoContent())
+				.andExpect(cookie().maxAge("refresh_token", 0));
+
+		mockMvc.perform(post("/auth/refresh").cookie(session.refreshCookie()))
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void logoutWithoutCredentialsIsIdempotent() throws Exception {
+		mockMvc.perform(post("/auth/logout"))
+				.andExpect(status().isNoContent())
+				.andExpect(cookie().maxAge("access_token", 0))
+				.andExpect(cookie().maxAge("refresh_token", 0));
+	}
+
+	@Test
+	void logoutRevokesAllSessionsOfUser() throws Exception {
+		String email = uniqueEmail();
+		AuthSession first = register(email);
+		AuthSession second = login(email, DEFAULT_PASSWORD);
+
+		mockMvc.perform(post("/auth/logout").cookie(first.accessCookie()))
+				.andExpect(status().isNoContent());
+
+		mockMvc.perform(post("/auth/refresh").cookie(first.refreshCookie()))
+				.andExpect(status().isUnauthorized());
+		mockMvc.perform(post("/auth/refresh").cookie(second.refreshCookie()))
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
 	void deleteMeClearsCookiesAndRemovesUser() throws Exception {
 		AuthSession session = register(uniqueEmail());
 

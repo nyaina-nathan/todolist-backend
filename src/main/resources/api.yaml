@@ -103,6 +103,26 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Log out and revoke the user's refresh tokens
+      description: >-
+        Deletes all persisted refresh tokens for the user and clears the
+        `access_token` and `refresh_token` cookies. The endpoint is tolerant:
+        it works with a valid access token, with only a refresh cookie, or
+        with no credentials at all. The access token remains valid until it
+        expires; only the refresh tokens are revoked server-side.
+      operationId: logout
+      security: []
+      responses:
+        '204':
+          description: Logged out
+          headers:
+            Set-Cookie:
+              description: Clears the `access_token` and `refresh_token` cookies.
+              schema:
+                type: string
   /auth/me:
     get:
       tags: [Auth]
