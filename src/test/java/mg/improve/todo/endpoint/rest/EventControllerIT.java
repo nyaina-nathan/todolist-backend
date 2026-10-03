@@ -106,6 +106,70 @@ class EventControllerIT extends AbstractControllerIT {
 	}
 
 	@Test
+	void createEventRejectsOverlapAndReturnsConflictingEvent() throws Exception {
+		AuthSession session = register(uniqueEmail());
+		String todoId = createTodo(session, "Plan sprint");
+		String eventId = createEvent(session, todoId, "Standup", START, END);
+
+		mockMvc.perform(post("/todos/{todoId}/events", todoId)
+						.cookie(session.accessCookie())
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(eventJson(
+								"Overlap", "2026-03-01T09:15:00Z", "2026-03-01T09:45:00Z")))
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.code").value(409))
+				.andExpect(jsonPath("$.event.id").value(eventId))
+				.andExpect(jsonPath("$.event.title").value("Standup"));
+
+		mockMvc.perform(get("/todos/{todoId}/events", todoId).cookie(session.accessCookie()))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(1));
+	}
+
+	@Test
+	void createEventRejectsOverlapAcrossTodos() throws Exception {
+		AuthSession session = register(uniqueEmail());
+		String firstTodoId = createTodo(session, "Plan sprint");
+		String secondTodoId = createTodo(session, "Plan retro");
+		String eventId = createEvent(session, firstTodoId, "Standup", START, END);
+
+		mockMvc.perform(post("/todos/{todoId}/events", secondTodoId)
+						.cookie(session.accessCookie())
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(eventJson(
+								"Overlap", "2026-03-01T09:15:00Z", "2026-03-01T09:45:00Z")))
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.code").value(409))
+				.andExpect(jsonPath("$.event.id").value(eventId));
+	}
+
+	@Test
+	void createEventAllowsTouchingTimes() throws Exception {
+		AuthSession session = register(uniqueEmail());
+		String todoId = createTodo(session, "Plan sprint");
+		createEvent(session, todoId, "Standup", START, END);
+		createEvent(session, todoId, "Retro", END, "2026-03-01T10:00:00Z");
+	}
+
+	@Test
+	void updateEventRejectsOverlap() throws Exception {
+		AuthSession session = register(uniqueEmail());
+		String todoId = createTodo(session, "Plan sprint");
+		String firstId = createEvent(session, todoId, "Standup", START, END);
+		String secondId = createEvent(
+				session, todoId, "Retro", "2026-03-01T11:00:00Z", "2026-03-01T12:00:00Z");
+
+		mockMvc.perform(patch("/events/{eventId}", secondId)
+						.cookie(session.accessCookie())
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"startTime\":\"2026-03-01T09:15:00Z\","
+								+ "\"endTime\":\"2026-03-01T09:45:00Z\"}"))
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.code").value(409))
+				.andExpect(jsonPath("$.event.id").value(firstId));
+	}
+
+	@Test
 	void eventsAreIsolatedPerUser() throws Exception {
 		AuthSession owner = register(uniqueEmail());
 		String todoId = createTodo(owner, "Private plan");

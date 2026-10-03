@@ -310,6 +310,14 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: >-
+            The event's time range overlaps an existing event of the
+            authenticated user. The conflicting event is included in the body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /events:
     get:
@@ -399,6 +407,14 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: >-
+            The event's resulting time range overlaps another event of the
+            authenticated user. The conflicting event is included in the body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     delete:
       tags: [Events]
       summary: Delete an event
@@ -698,3 +714,10 @@ components:
           type: array
           items:
             type: string
+        event:
+          description: >-
+            Present on `409 Conflict` responses when an event time range
+            overlaps an existing event.
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/Event'

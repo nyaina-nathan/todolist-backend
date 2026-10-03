@@ -1,5 +1,6 @@
 package mg.improve.todo.repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,4 +16,11 @@ public interface EventRepository
 	List<JEvent> findAllByTodoIdAndTodoUserIdOrderByStartTimeAsc(UUID todoId, UUID userId);
 
 	Optional<JEvent> findByIdAndTodoUserId(UUID id, UUID userId);
+
+	Optional<JEvent> findFirstByTodoUserIdAndStartTimeBeforeAndEndTimeAfterOrderByStartTimeAsc(
+			UUID userId, Instant endTime, Instant startTime);
+
+	Optional<JEvent>
+			findFirstByTodoUserIdAndIdNotAndStartTimeBeforeAndEndTimeAfterOrderByStartTimeAsc(
+					UUID userId, UUID id, Instant endTime, Instant startTime);
 }

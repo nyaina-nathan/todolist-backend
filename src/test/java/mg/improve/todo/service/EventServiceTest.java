@@ -33,6 +33,7 @@ import mg.improve.todo.domain.dto.request.EventUpdateRequest;
 import mg.improve.todo.domain.dto.response.PageMeta;
 import mg.improve.todo.domain.entity.Event;
 import mg.improve.todo.domain.mappers.EventMapper;
+import mg.improve.todo.exception.EventConflictException;
 import mg.improve.todo.exception.EventNotFoundException;
 import mg.improve.todo.exception.TodoNotFoundException;
 import mg.improve.todo.exception.ValidationException;
@@ -147,6 +148,29 @@ class EventServiceTest {
 	}
 
 	@Test
+	void createTodoEventRejectsOverlappingEvent() {
+		UUID todoId = UUID.randomUUID();
+		JTodo ownedTodo = new JTodo();
+		ownedTodo.setId(todoId);
+		EventCreateRequest request = new EventCreateRequest("standup", null, START, END);
+		JEvent conflict = jEvent(UUID.randomUUID());
+		Event conflictDomain = event(conflict.getId());
+
+		given(todoRepository.findByIdAndUserId(todoId, USER_ID)).willReturn(Optional.of(ownedTodo));
+		given(eventRepository
+				.findFirstByTodoUserIdAndStartTimeBeforeAndEndTimeAfterOrderByStartTimeAsc(
+						USER_ID, END, START))
+				.willReturn(Optional.of(conflict));
+		given(eventMapper.toDomain(conflict)).willReturn(conflictDomain);
+
+		assertThatThrownBy(() -> eventService.createTodoEvent(USER_ID, todoId, request))
+				.isInstanceOf(EventConflictException.class)
+				.satisfies(ex -> assertThat(((EventConflictException) ex).getEvent().id())
+						.isEqualTo(conflict.getId()));
+		verify(eventRepository, never()).save(any());
+	}
+
+	@Test
 	@SuppressWarnings("unchecked")
 	void listEventsReturnsPageWithMeta() {
 		JEvent jpa = jEvent(UUID.randomUUID());
@@ -250,6 +274,32 @@ class EventServiceTest {
 
 		assertThatThrownBy(() -> eventService.updateEvent(USER_ID, eventId, request))
 				.isInstanceOf(ValidationException.class);
+		verify(eventRepository, never()).save(any());
+	}
+
+	@Test
+	void updateEventRejectsOverlappingEvent() {
+		UUID eventId = UUID.randomUUID();
+		JEvent jpa = jEvent(eventId);
+		jpa.setStartTime(START);
+		jpa.setEndTime(END);
+		JEvent conflict = jEvent(UUID.randomUUID());
+		Event conflictDomain = event(conflict.getId());
+
+		EventUpdateRequest request = new EventUpdateRequest();
+		request.setEndTime(END.plusSeconds(3600));
+
+		given(eventRepository.findByIdAndTodoUserId(eventId, USER_ID)).willReturn(Optional.of(jpa));
+		given(eventRepository
+				.findFirstByTodoUserIdAndIdNotAndStartTimeBeforeAndEndTimeAfterOrderByStartTimeAsc(
+						USER_ID, eventId, END.plusSeconds(3600), START))
+				.willReturn(Optional.of(conflict));
+		given(eventMapper.toDomain(conflict)).willReturn(conflictDomain);
+
+		assertThatThrownBy(() -> eventService.updateEvent(USER_ID, eventId, request))
+				.isInstanceOf(EventConflictException.class)
+				.satisfies(ex -> assertThat(((EventConflictException) ex).getEvent().id())
+						.isEqualTo(conflict.getId()));
 		verify(eventRepository, never()).save(any());
 	}
 

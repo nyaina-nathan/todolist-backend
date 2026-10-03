@@ -6,6 +6,7 @@ import java.util.List;
 
 import mg.improve.todo.config.AuthCookieFactory;
 import mg.improve.todo.domain.dto.response.ErrorResponse;
+import mg.improve.todo.domain.dto.response.EventResponse;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -77,6 +78,12 @@ public class GlobalExceptionHandler {
 		return build(HttpStatus.NOT_FOUND, ex.getMessage(), request, List.of());
 	}
 
+	@ExceptionHandler(EventConflictException.class)
+	public ResponseEntity<ErrorResponse> handleEventConflict(
+			EventConflictException ex, HttpServletRequest request) {
+		return build(HttpStatus.CONFLICT, ex.getMessage(), request, List.of(), ex.getEvent());
+	}
+
 	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
 	public ResponseEntity<ErrorResponse> handleTypeMismatch(
 			MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
@@ -89,7 +96,16 @@ public class GlobalExceptionHandler {
 
 	private ResponseEntity<ErrorResponse> build(
 			HttpStatus status, String message, HttpServletRequest request, List<String> details) {
+		return build(status, message, request, details, null);
+	}
+
+	private ResponseEntity<ErrorResponse> build(
+			HttpStatus status,
+			String message,
+			HttpServletRequest request,
+			List<String> details,
+			EventResponse event) {
 		return ResponseEntity.status(status)
-				.body(ErrorResponse.of(status.value(), message, request.getRequestURI(), details));
+				.body(ErrorResponse.of(status.value(), message, request.getRequestURI(), details, event));
 	}
 }

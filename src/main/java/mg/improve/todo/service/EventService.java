@@ -13,6 +13,7 @@ import mg.improve.todo.domain.dto.response.PageMeta;
 import mg.improve.todo.domain.entity.Event;
 import mg.improve.todo.domain.entity.Todo;
 import mg.improve.todo.domain.mappers.EventMapper;
+import mg.improve.todo.exception.EventConflictException;
 import mg.improve.todo.exception.EventNotFoundException;
 import mg.improve.todo.exception.TodoNotFoundException;
 import mg.improve.todo.exception.ValidationException;
@@ -58,6 +59,16 @@ public class EventService {
 
 		JTodo todo = requireOwnedTodo(userId, todoId);
 
+		Instant startTime = request.startTime();
+		Instant endTime = request.endTime();
+		eventRepository
+				.findFirstByTodoUserIdAndStartTimeBeforeAndEndTimeAfterOrderByStartTimeAsc(
+						userId, endTime, startTime)
+				.ifPresent(conflict -> {
+					throw new EventConflictException(
+							EventResponse.from(eventMapper.toDomain(conflict)));
+				});
+
 		var todoRef = new Todo();
 		todoRef.setId(todo.getId());
 
@@ -65,8 +76,8 @@ public class EventService {
 		event.setTodo(todoRef);
 		event.setTitle(request.title().trim());
 		event.setDescription(request.description());
-		event.setStartTime(request.startTime());
-		event.setEndTime(request.endTime());
+		event.setStartTime(startTime);
+		event.setEndTime(endTime);
 
 		return eventMapper.toDomain(eventRepository.save(eventMapper.toJpa(event)));
 	}
@@ -111,6 +122,14 @@ public class EventService {
 		if (endTime.isBefore(startTime)) {
 			throw new ValidationException(List.of("endTime must not be before startTime"));
 		}
+
+		eventRepository
+				.findFirstByTodoUserIdAndIdNotAndStartTimeBeforeAndEndTimeAfterOrderByStartTimeAsc(
+						userId, eventId, endTime, startTime)
+				.ifPresent(conflict -> {
+					throw new EventConflictException(
+							EventResponse.from(eventMapper.toDomain(conflict)));
+				});
 
 		if (request.isTitlePresent()) {
 			jpa.setTitle(request.getTitle().trim());

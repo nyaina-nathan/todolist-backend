@@ -39,7 +39,8 @@ class AuthControllerIT extends AbstractControllerIT {
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(registerJson(email, DEFAULT_USERNAME, DEFAULT_PASSWORD)))
 				.andExpect(status().isConflict())
-				.andExpect(jsonPath("$.code").value(409));
+				.andExpect(jsonPath("$.code").value(409))
+				.andExpect(jsonPath("$.event").doesNotExist());
 	}
 
 	@Test
