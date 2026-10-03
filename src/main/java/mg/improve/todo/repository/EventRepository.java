@@ -17,6 +17,9 @@ public interface EventRepository
 
 	Optional<JEvent> findByIdAndTodoUserId(UUID id, UUID userId);
 
+	List<JEvent> findAllByTodoUserIdAndStartTimeBetweenOrderByStartTimeAsc(
+			UUID userId, Instant from, Instant to);
+
 	Optional<JEvent> findFirstByTodoUserIdAndStartTimeBeforeAndEndTimeAfterOrderByStartTimeAsc(
 			UUID userId, Instant endTime, Instant startTime);
 

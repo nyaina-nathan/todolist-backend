@@ -15,6 +15,8 @@ tags:
     description: CRUD operations on the authenticated user's todos
   - name: Events
     description: Events belonging to a todo
+  - name: Stats
+    description: Aggregated statistics for the authenticated user
 security:
   - bearerAuth: []
 paths:
@@ -427,6 +429,25 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /stats:
+    get:
+      tags: [Stats]
+      summary: Get aggregated statistics for the authenticated user
+      description: >-
+        Returns the number of todos that are not done yet, the number of
+        events starting in the next 7 days together with their total length,
+        and the not-done todo with the closest future deadline.
+      operationId: getStats
+      responses:
+        '200':
+          description: Aggregated statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -696,6 +717,31 @@ components:
         endTime:
           type: string
           format: date-time
+    StatsResponse:
+      type: object
+      required: [undoneTodoCount, upcomingEventCount, upcomingEventsTotalLength]
+      properties:
+        undoneTodoCount:
+          type: integer
+          format: int64
+          description: Number of todos that are not done yet
+        upcomingEventCount:
+          type: integer
+          format: int64
+          description: Number of events starting in the next 7 days
+        upcomingEventsTotalLength:
+          type: string
+          format: duration
+          description: >-
+            Total length of the upcoming events as an ISO-8601 duration
+            (for example `PT2H30M`, or `PT0S` when there are none).
+        closestDeadlineTodo:
+          description: >-
+            The not-done todo with the closest future deadline, or null when
+            there is none.
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/Todo'
     Error:
       type: object
       required: [code, message]

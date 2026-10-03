@@ -1,5 +1,6 @@
 package mg.improve.todo.repository;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,4 +27,9 @@ public interface TodoRepository extends JpaRepository<JTodo, UUID> {
 			Pageable pageable);
 
 	Optional<JTodo> findByIdAndUserId(UUID id, UUID userId);
+
+	long countByUserIdAndDoneFalse(UUID userId);
+
+	Optional<JTodo> findFirstByUserIdAndDoneFalseAndDueDateGreaterThanEqualOrderByDueDateAsc(
+			UUID userId, Instant dueDate);
 }
