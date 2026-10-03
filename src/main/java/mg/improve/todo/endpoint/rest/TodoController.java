@@ -9,7 +9,6 @@ import mg.improve.todo.domain.dto.TodoUpdateRequest;
 import mg.improve.todo.service.TodoService;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -32,41 +32,41 @@ public class TodoController {
 	}
 
 	@GetMapping
-	public ResponseEntity<TodoPage> listTodos(
+	public TodoPage listTodos(
 			@AuthenticationPrincipal UUID userId,
 			@RequestParam(value = "isDone", required = false) Boolean isDone,
 			@RequestParam(value = "title", required = false) String title,
 			@RequestParam(value = "page", defaultValue = "1") int page,
 			@RequestParam(value = "perPage", defaultValue = "20") int perPage) {
-		return ResponseEntity.ok(todoService.listTodos(userId, isDone, title, page, perPage));
+		return todoService.listTodos(userId, isDone, title, page, perPage);
 	}
 
 	@PostMapping
-	public ResponseEntity<TodoResponse> createTodo(
+	@ResponseStatus(HttpStatus.CREATED)
+	public TodoResponse createTodo(
 			@AuthenticationPrincipal UUID userId,
 			@RequestBody TodoCreateRequest request) {
-		TodoResponse body = TodoResponse.from(todoService.createTodo(userId, request));
-		return ResponseEntity.status(HttpStatus.CREATED).body(body);
+		return TodoResponse.from(todoService.createTodo(userId, request));
 	}
 
 	@GetMapping("/{todoId}")
-	public ResponseEntity<TodoResponse> getTodo(
+	public TodoResponse getTodo(
 			@AuthenticationPrincipal UUID userId, @PathVariable("todoId") UUID todoId) {
-		return ResponseEntity.ok(TodoResponse.from(todoService.getTodo(userId, todoId)));
+		return TodoResponse.from(todoService.getTodo(userId, todoId));
 	}
 
 	@PatchMapping("/{todoId}")
-	public ResponseEntity<TodoResponse> updateTodo(
+	public TodoResponse updateTodo(
 			@AuthenticationPrincipal UUID userId,
 			@PathVariable("todoId") UUID todoId,
 			@RequestBody TodoUpdateRequest request) {
-		return ResponseEntity.ok(TodoResponse.from(todoService.updateTodo(userId, todoId, request)));
+		return TodoResponse.from(todoService.updateTodo(userId, todoId, request));
 	}
 
 	@DeleteMapping("/{todoId}")
-	public ResponseEntity<Void> deleteTodo(
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void deleteTodo(
 			@AuthenticationPrincipal UUID userId, @PathVariable("todoId") UUID todoId) {
 		todoService.deleteTodo(userId, todoId);
-		return ResponseEntity.noContent().build();
 	}
 }

@@ -12,7 +12,6 @@ import mg.improve.todo.service.EventService;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -33,49 +33,48 @@ public class EventController {
 	}
 
 	@GetMapping("/todos/{todoId}/events")
-	public ResponseEntity<List<EventResponse>> listTodoEvents(
+	public List<EventResponse> listTodoEvents(
 			@AuthenticationPrincipal UUID userId, @PathVariable("todoId") UUID todoId) {
-		return ResponseEntity.ok(eventService.listTodoEvents(userId, todoId));
+		return eventService.listTodoEvents(userId, todoId);
 	}
 
 	@PostMapping("/todos/{todoId}/events")
-	public ResponseEntity<EventResponse> createTodoEvent(
+	@ResponseStatus(HttpStatus.CREATED)
+	public EventResponse createTodoEvent(
 			@AuthenticationPrincipal UUID userId,
 			@PathVariable("todoId") UUID todoId,
 			@RequestBody EventCreateRequest request) {
-		EventResponse body = EventResponse.from(eventService.createTodoEvent(userId, todoId, request));
-		return ResponseEntity.status(HttpStatus.CREATED).body(body);
+		return EventResponse.from(eventService.createTodoEvent(userId, todoId, request));
 	}
 
 	@GetMapping("/events")
-	public ResponseEntity<EventPage> listEvents(
+	public EventPage listEvents(
 			@AuthenticationPrincipal UUID userId,
 			@RequestParam(value = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
 			@RequestParam(value = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
 			@RequestParam(value = "page", defaultValue = "1") int page,
 			@RequestParam(value = "perPage", defaultValue = "20") int perPage) {
-		return ResponseEntity.ok(eventService.listEvents(userId, from, to, page, perPage));
+		return eventService.listEvents(userId, from, to, page, perPage);
 	}
 
 	@GetMapping("/events/{eventId}")
-	public ResponseEntity<EventResponse> getEvent(
+	public EventResponse getEvent(
 			@AuthenticationPrincipal UUID userId, @PathVariable("eventId") UUID eventId) {
-		return ResponseEntity.ok(EventResponse.from(eventService.getEvent(userId, eventId)));
+		return EventResponse.from(eventService.getEvent(userId, eventId));
 	}
 
 	@PatchMapping("/events/{eventId}")
-	public ResponseEntity<EventResponse> updateEvent(
+	public EventResponse updateEvent(
 			@AuthenticationPrincipal UUID userId,
 			@PathVariable("eventId") UUID eventId,
 			@RequestBody EventUpdateRequest request) {
-		return ResponseEntity.ok(
-				EventResponse.from(eventService.updateEvent(userId, eventId, request)));
+		return EventResponse.from(eventService.updateEvent(userId, eventId, request));
 	}
 
 	@DeleteMapping("/events/{eventId}")
-	public ResponseEntity<Void> deleteEvent(
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void deleteEvent(
 			@AuthenticationPrincipal UUID userId, @PathVariable("eventId") UUID eventId) {
 		eventService.deleteEvent(userId, eventId);
-		return ResponseEntity.noContent().build();
 	}
 }
