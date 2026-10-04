@@ -13,8 +13,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -29,20 +27,6 @@ public abstract class AbstractControllerIT extends ConfIT {
 
 	@Autowired
 	protected MockMvc mockMvc;
-
-	@DynamicPropertySource
-	static void testProperties(DynamicPropertyRegistry registry) {
-		registry.add("spring.datasource.url", postgres::getJdbcUrl);
-		registry.add("spring.datasource.username", postgres::getUsername);
-		registry.add("spring.datasource.password", postgres::getPassword);
-		registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
-		registry.add(
-				"jwt.secret",
-				() -> "integration-test-secret-key-that-is-at-least-256-bits-long-0123456789");
-		registry.add("jwt.expiration.access", () -> 900000L);
-		registry.add("jwt.expiration.refresh", () -> 604800000L);
-		registry.add("app.cors.allowed-origin", () -> "http://localhost:3000");
-	}
 
 	@AfterEach
 	void clearSecurityContext() {
