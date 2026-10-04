@@ -1,0 +1,7 @@
+.git
+.gradle
+build
+.env
+.vscode
+*.md
+!gradle/wrapper/gradle-wrapper.jar
